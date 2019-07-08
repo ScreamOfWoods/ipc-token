@@ -11,11 +11,33 @@ void handle_error(int err_code)
 	exit(EXIT_FAILURE);
 }
 
+int shared_mem_reader(int shared_mem_id, int shared_segment_size)
+{
+	char* shared_mem_message;
+	struct shmid_ds shared_mem_buffer;
+
+	shared_mem_message = (char*) shmat(shared_mem_id, NULL, 0);
+
+	if(shared_mem_message == (void*) -1) {
+		return -1;
+	}
+
+	printf("Got message: %s", shared_mem_message);
+
+	if(shmdt(shared_mem_message) == -1) {
+		return -1;
+	}
+	
+	if(shmctl(shared_mem_id, IPC_RMID, &shared_mem_buffer) == -1) {
+		return -1;
+	}
+	
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	int shared_mem_id = 0;
-	char* shared_mem_message;
-	struct shmid_ds shared_mem_buffer;
 	const int shared_segment_size = 0x400;
 
 	if(argc < 2) {
@@ -30,20 +52,8 @@ int main(int argc, char *argv[])
 	}
 
 	printf("%d\n", shared_mem_id);
-
-	shared_mem_message = (char*) shmat(shared_mem_id, NULL, 0);
-
-	if(shared_mem_message == (void*) -1) {
-		handle_error(errno);
-	}
-
-	printf("Got message: %s", shared_mem_message);
-
-	if(shmdt(shared_mem_message) == -1) {
-		handle_error(errno);
-	}
 	
-	if(shmctl(shared_mem_id, IPC_RMID, &shared_mem_buffer) == -1) {
+	if(shared_mem_reader(shared_mem_id, shared_segment_size) == -1) {
 		handle_error(errno);
 	}
 
