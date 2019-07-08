@@ -34,6 +34,7 @@ int main()
 		handle_error(errno);
 	}
 	
+	printf("Shared memory id %d\n", segment_id);
 	printf("First step! Enter a string to pass on!\n");
 
 	fgets(shared_memory, shared_mem_buffer.shm_segsz, stdin);
@@ -43,7 +44,8 @@ int main()
 		handle_error(errno);
 	}
 
-
+	
+#if 0
 	if(shmctl(segment_id, IPC_RMID, &shared_mem_buffer) == -1) {
 		handle_error(errno);
 	}
@@ -52,7 +54,7 @@ int main()
 	if(shared_memory != NULL) {
 		printf("Successfully deleted!\n");
 	}*/
-
+#endif
 
 	return 0;
 }
