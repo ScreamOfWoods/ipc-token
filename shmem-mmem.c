@@ -4,12 +4,7 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <errno.h>
-
-void handle_error(int err_code)
-{
-	fprintf(stderr, "Got error %s\n", strerror(err_code));
-	exit(EXIT_FAILURE);
-}
+#include "handlers.h"
 
 int main()
 {

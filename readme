@@ -1,8 +1,8 @@
 Create several programs that exchage a single message via all types of IPC
-	--shared memory
+	--shared memory +
 	--semaphores??
 	--memory map
-	--pipe
+	--pipe -
 	--fifo
 	--socket
 
