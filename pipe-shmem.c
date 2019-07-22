@@ -11,13 +11,17 @@
 #include "handlers.h"
 #include "pipes.h"
 
-const char* arg_list[] = {
-	"./socket-pipe",
-			NULL
-};
 
 void spawn()
 {
+	char readfd[32];
+	sprintf(readfd, "%d", pipe_fds[0]);
+	char* arg_list[] = {
+		"./socket-pipe",
+		readfd,
+		NULL
+	};
+	printf("Exec\n");
 	if(execve("./socket-pipe", arg_list, NULL) == -1) 
 			handle_error(errno);
 }
@@ -70,6 +74,7 @@ int main(int argc, char *argv[])
 	pid_t child_pid;
 	int len = 0;
 
+
 	if(pipe(pipe_fds) == -1) {
 		handle_error(errno);
 	}
@@ -82,6 +87,7 @@ int main(int argc, char *argv[])
 	}
 
 	if(child_pid == (pid_t) 0) {
+		close(pipe_fds[1]);
 		struct sigaction caught_sig;
 		memset(&caught_sig, 0, sizeof(caught_sig));
 		caught_sig.sa_handler = &signal_handler;
@@ -91,7 +97,6 @@ int main(int argc, char *argv[])
 		}
 		pause();
 	} else {
-		close(pipe_fds[0]);
 		if(argc < 2) {
 			fprintf(stderr, "Usage: ./pipe-shmem shared-memory-id\n");
 			exit(EXIT_FAILURE);
@@ -102,18 +107,19 @@ int main(int argc, char *argv[])
 				exit(EXIT_FAILURE);
 			}
 		}
-
+		close(pipe_fds[0]);
 		printf("%d\n", shared_mem_id);
 		shared_mem_message = shared_mem_reader(shared_mem_id, 
 				shared_segment_size, shared_mem_message);
 		if(shared_mem_message == NULL) {
 			handle_error(errno);
 		}
-
+		len = strlen(shared_mem_message);
 		write_to_pipe(shared_mem_message, len);
-		printf("Sending signal SIGUSR!\n");
-		kill(child_pid, SIGUSR1);
 		close(pipe_fds[1]);
+		printf("Sending signal SIGUSR!\n");
+		sleep(2);
+		kill(child_pid, SIGUSR1);
 		free(shared_mem_message);
 		if((wait(NULL)) == -1) {
 			handle_error(errno);
