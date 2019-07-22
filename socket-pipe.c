@@ -8,41 +8,6 @@
 #include "handlers.h"
 #include "pipes.h"
 
-#if 0
-char* read_from_pipe()
-{
-	int full_size = 1024;
-	char* message = (char*) malloc(full_size);
-	if(message == NULL) {
-		handle_error(errno);
-	}
-	printf("Reading function\n");
-	while(1) {
-		printf("Loop\n");
-		printf("Pipe fds: read %d\n", pipe_fds[0]);
-		int res = read(pipe_fds[0], message, full_size);
-		printf("Bytes read %d\n", res);
-		if(res == -1){
-			handle_error(errno);
-		}
-		printf("Some msg: %s\n", message);
-		if(res < full_size) {
-			if(message[full_size-1] == '\n')
-				break;
-			else {
-				full_size -= res;
-				continue;
-			}
-		} else {
-			printf("Should be read 1024\n");
-			break;
-		}
-	}
-
-	return message;
-}
-#endif
-
 char* read_from_pipe()
 {
 	int full_size = 1024;

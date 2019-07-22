@@ -2,3 +2,4 @@
 *.swp
 pipe-shmem
 shmem-mmem
+socket-pipe
