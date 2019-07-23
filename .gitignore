@@ -3,3 +3,4 @@
 pipe-shmem
 shmem-mmem
 socket-pipe
+fifo-socket
