@@ -47,6 +47,38 @@ void serve(int client_socket, char* message, int length)
 		printf("Send >>%d||%s<< successfully!\n", length, message);
 }
 
+void init_server(int* server_fd, struct sockaddr_in* address_info)
+{
+	int opt = 1;
+	(*server_fd) = socket(AF_INET, SOCK_STREAM, 0);
+
+	if((*server_fd) == -1) {
+		fprintf(stderr, "Failed to init server!\n");
+		handle_error(errno);
+	}
+
+	if((setsockopt((*server_fd), SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, 
+					&opt, sizeof(opt) )) == -1) {
+		fprintf(stderr, "Failed to set options to socket\n");
+		handle_error(errno);
+	}
+
+	address_info->sin_family = AF_INET;
+	address_info->sin_addr.s_addr = INADDR_ANY;
+	address_info->sin_port = htons(PORT);
+
+	if(bind((*server_fd), (struct sockaddr*) address_info,
+				       	sizeof((*address_info))) == -1) {
+		fprintf(stderr, "Error binding socket\n");
+		handle_error(errno);
+	}
+}
+
+void handle_client()
+{
+	
+}
+
 int main(int argc, char* argv[])
 {
 	pipe_fds[0] = 0;
@@ -77,26 +109,8 @@ int main(int argc, char* argv[])
 	struct sockaddr_in address_info;
 	int socklen = sizeof(address_info);
 
-	if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		fprintf(stderr, "Failed to init server!\n");
-		handle_error(errno);
-	}
+	init_server(&server_fd, &address_info);
 
-	if((setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, 
-					&opt, sizeof(opt) )) == -1) {
-		fprintf(stderr, "Failed to set options to socket\n");
-		handle_error(errno);
-	}
-
-	address_info.sin_family = AF_INET;
-	address_info.sin_addr.s_addr = INADDR_ANY;
-	address_info.sin_port = htons(PORT);
-
-	if((bind(server_fd, (struct sockaddr*) &address_info,
-				       	sizeof(address_info))) == -1) {
-		fprintf(stderr, "Error binding socket\n");
-		handle_error(errno);
-	}
 	if(listen(server_fd, 3) == -1) {
 		fprintf(stderr, "Failed to set server socket to listen\n");
 	}
