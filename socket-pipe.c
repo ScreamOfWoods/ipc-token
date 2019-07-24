@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include "handlers.h"
 #include "pipes.h"
 
@@ -33,16 +34,17 @@ char* read_from_pipe()
 
 void serve(int client_socket, char* message, int length)
 {
-		if((write(client_socket, &length, sizeof(length))) < sizeof(length)) {
+		if(write(client_socket, &length, sizeof(length)) < sizeof(length)) {
 			fprintf(stderr, "Couln't send size of message to client!\n");
 			handle_error(errno);
 		}
-		if((write(client_socket, message, length)) < length) {
+		if(write(client_socket, message, length) < length) {
 			fprintf(stderr, "Failed to transmit message to client\n");
+			printf("errno %d\n", errno);
 			handle_error(errno);
 		}
 
-		printf("Send successfully!\n");
+		printf("Send >>%d||%s<< successfully!\n", length, message);
 }
 
 int main(int argc, char* argv[])
@@ -95,9 +97,26 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "Error binding socket\n");
 		handle_error(errno);
 	}
+	if(listen(server_fd, 3) == -1) {
+		fprintf(stderr, "Failed to set server socket to listen\n");
+	}
 
-	if((client_fd = accept(server_fd, (struct sockaddr*) &address_info, 
-				(socklen_t*) &socklen) == -1)) {
+	char* server_ip = (char*) malloc(32);
+	if(server_ip == NULL) {
+		fprintf(stderr, "Cannot allocate memory for server ip\n");
+		handle_error(errno);
+	}
+	inet_ntop(AF_INET, &(address_info.sin_addr),
+		       	server_ip, (socklen_t) socklen);
+
+	printf("Server listening on %s:%d\n", server_ip, PORT);
+
+	free(server_ip);
+
+	client_fd = accept(server_fd, (struct sockaddr*) &address_info, 
+				(socklen_t*) &socklen);
+
+	if(client_fd == -1){
 		fprintf(stderr, "Cannot accept connection\n");
 		handle_error(errno);
 	}
