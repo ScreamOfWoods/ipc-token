@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -11,6 +12,7 @@
 #include <getopt.h>
 #include "handlers.h"
 
+#define FIFO "/tmp/token_fifo"
 
 void print_usage()
 {
@@ -37,6 +39,37 @@ char* read_from_server(int client_fd)
 	}
 
 	return message;
+}
+
+int create_fifo()
+{
+	int fifo_fd;
+	if(mkfifo(FIFO, 0644) == -1) {
+		if(errno != EEXIST) {
+			fprintf(stderr, "Cannot create FIFO\n");
+			handle_error(errno);
+		}
+	}
+
+	fifo_fd = open(FIFO, O_WRONLY);
+	if(fifo_fd == -1) {
+		fprintf(stderr, "Cannot open FIFO\n");
+		handle_error(errno);
+	}
+
+	return fifo_fd;
+}
+
+void write_to_fifo(int fifo_fd, char* message, size_t len)
+{
+	if(write(fifo_fd, &len, sizeof(len)) == -1) {
+		fprintf(stderr, "Cannot write length to FIFO\n");
+		handle_error(errno);
+	}
+	if(write(fifo_fd, message, len) == -1) {
+		fprintf(stderr, "Cannot write data to FIFO\n");
+		handle_error(errno);
+	}
 }
 
 int main(int argc, char* argv[])
@@ -90,7 +123,11 @@ int main(int argc, char* argv[])
 	
 	char* message = read_from_server(client_fd);
 	
-	printf("Client socket got message >>%s\n<<", message);
+	printf("Client socket got message %s\n", message);
+
+	int fifo_fd = create_fifo();
+	printf("Writing %s to FIFO\n", message);
+	write_to_fifo(fifo_fd, message, strlen(message));
 
 	free(message);
 
