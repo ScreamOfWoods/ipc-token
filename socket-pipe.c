@@ -74,8 +74,27 @@ void init_server(int* server_fd, struct sockaddr_in* address_info)
 	}
 }
 
-void handle_client()
+void handle_client(struct sockaddr_in* address_info, int server_fd,
+	       	int* client_fd, socklen_t *socklen)
 {
+	char* server_ip = (char*) malloc(32);
+	if(server_ip == NULL) {
+		fprintf(stderr, "Cannot allocate memory for server ip\n");
+		handle_error(errno);
+	}
+	inet_ntop(AF_INET, &(address_info->sin_addr),
+		       	server_ip, (*socklen));
+
+	printf("Server listening on %s:%d\n", server_ip, PORT);
+
+	free(server_ip);
+
+	(*client_fd) = accept(server_fd, (struct sockaddr*) address_info, socklen);
+
+	if((*client_fd) == -1){
+		fprintf(stderr, "Cannot accept connection\n");
+		handle_error(errno);
+	}
 	
 }
 
@@ -91,7 +110,6 @@ int main(int argc, char* argv[])
 			fprintf(stderr, "Could not convert %s to number\n", argv[1]);
 			exit(EXIT_FAILURE);
 		}
-		
 	}
 
 	char* message = read_from_pipe();
@@ -115,26 +133,7 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "Failed to set server socket to listen\n");
 	}
 
-	char* server_ip = (char*) malloc(32);
-	if(server_ip == NULL) {
-		fprintf(stderr, "Cannot allocate memory for server ip\n");
-		handle_error(errno);
-	}
-	inet_ntop(AF_INET, &(address_info.sin_addr),
-		       	server_ip, (socklen_t) socklen);
-
-	printf("Server listening on %s:%d\n", server_ip, PORT);
-
-	free(server_ip);
-
-	client_fd = accept(server_fd, (struct sockaddr*) &address_info, 
-				(socklen_t*) &socklen);
-
-	if(client_fd == -1){
-		fprintf(stderr, "Cannot accept connection\n");
-		handle_error(errno);
-	}
-
+	handle_client(&address_info, server_fd, &client_fd, &socklen);
 	serve(client_fd, message, strlen(message));
 
 	free(message);
