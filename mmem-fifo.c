@@ -62,6 +62,11 @@ int main()
 
 	printf("Reading end of FIFO got message %s\n", message);
 
+	if(unlink(FIFO) == -1) {
+		fprintf(stderr, "Cannot delete FIFO\n");
+		handle_error(errno);
+	}
+
 	free(message);
 
 	return 0;
