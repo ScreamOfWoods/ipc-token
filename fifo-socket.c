@@ -125,8 +125,8 @@ int main(int argc, char* argv[])
 	
 	printf("Client socket got message %s\n", message);
 
-	int fifo_fd = create_fifo();
 	printf("Writing %s to FIFO\n", message);
+	int fifo_fd = create_fifo();
 	write_to_fifo(fifo_fd, message, strlen(message));
 
 	free(message);
