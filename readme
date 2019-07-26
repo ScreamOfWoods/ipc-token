@@ -1,14 +1,9 @@
 Create several programs that exchage a single message via all types of IPC
-	--shared memory +
-	--semaphores??
+	--shared memory
 	--memory map
-	--pipe -
+	--pipe
 	--fifo
 	--socket
 
 Where each program MUST implement writing in one type of IPC and reading from another
 The GOAL is to have some kind of token ring
-
-
-#TODO
-	use fork and execve to spawn all processes.
