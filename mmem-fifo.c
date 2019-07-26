@@ -8,8 +8,6 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <getopt.h>
 #include "handlers.h"
 
@@ -77,7 +75,7 @@ void* create_mmap()
 		}
 	}
 
-	if(lseek(mmap_fd, SIZE, SEEK_SET) == -1) {
+	if(lseek(mmap_fd, SIZE + 1, SEEK_SET) == -1) {
 		fprintf(stderr, "Cannot seek to offset %d\n", SIZE);
 		handle_error(errno);
 	}
@@ -118,8 +116,13 @@ int main()
 		handle_error(errno);
 	}
 	
-	create_mmap();
-
+	printf("Writing %s to mmap\n", message);
+	void* mmap_region = create_mmap();
+	mmap_region = memcpy(mmap_region, message, SIZE);
+	
+	if(munmap(mmap_region, SIZE)) {
+		fprintf(stderr, "Failed to unmap mapped memory\n");
+	}
 	free(message);
 
 	return 0;
