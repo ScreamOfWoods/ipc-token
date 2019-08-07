@@ -1,12 +1,10 @@
-CC = gcc
-
 all: shmem-mmem pipe-shmem socket-pipe fifo-socket mmem-fifo
 
 shmem-mmem: shmem-mmem.c handlers.h
-	$(CC) -ggdb $^ -o $@
+	$(CC) $^ -o $@
 
 pipe-shmem: pipe-shmem.c handlers.h pipes.o
-	$(CC) -ggdb $^ -o $@
+	$(CC) $^ -o $@
 
 socket-pipe: socket-pipe.c handlers.h pipes.o
 	$(CC) $^ -o $@
